@@ -10,30 +10,19 @@ namespace WaterFallTweakScaleInterop
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class Interop : MonoBehaviour
     {
-        List<Vessel> toBeScaled = new List<Vessel>();
-        bool init = false;
         private void Start()
         {
             GameEvents.onVesselLoaded.Add(RescaleWaterfall);
             GameEvents.onVesselCreate.Add(RescaleWaterfall);
+
+            foreach (Vessel v in FlightGlobals.Vessels)
+            {
+                RescaleWaterfall(v);
+            }
             Debug.Log("WaterFallTweakScaleInterop: Ready!");
         }
 
-
-        protected void LateUpdate()
-        {
-            if (!HighLogic.LoadedSceneIsFlight)
-                return;
-
-            if (!init)
-            {
-                foreach (Vessel v in FlightGlobals.Vessels)
-                {
-                    RescaleWaterfall(v);
-                }
-            }
-        }
-
+        
         private void RescaleWaterfall(Vessel data)
         {
           
@@ -48,22 +37,11 @@ namespace WaterFallTweakScaleInterop
                     continue;
                 }
                 
-                float scaleMultiplier = tweakScaleModule.currentScale / tweakScaleModule.defaultScale;
 
                 foreach (var moduleWaterfallFx in (enginePart.Modules.GetModules<ModuleWaterfallFX>()))
                 {
+                    moduleWaterfallFx.useRelativeScaling = true;
                 
-                    foreach (var template in moduleWaterfallFx.Templates)
-                    {
-                   
-                        template.scale *= scaleMultiplier;
-
-                        foreach (var waterfallEffect in template.allFX)
-                        {
-                            waterfallEffect.ApplyTemplateOffsets(template.position, template.rotation, template.scale);
-                            init = true;
-                        }
-                    }
                 }
 
             }
